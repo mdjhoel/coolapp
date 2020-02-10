@@ -1,0 +1,237 @@
+
+<!-- Welcome to some sample code to control your Firebase Database -->
+<!-- HERE IS YOUR HTML TO SET UP YOUR PAGE -->
+<html>
+    <head>
+        <!-- HERE ARE YOUR FIREBASE and GOOGLE AUTHENICATION IMPORTS -->
+        <script src="https://www.gstatic.com/firebasejs/5.7.3/firebase.js"></script>
+        <script src="https://apis.google.com/js/platform.js" async defer></script>
+        
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        
+         <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+            
+    </head>
+    <body >
+        
+        <nav>
+            <div class="nav-wrapper">
+                
+              <a href="#!" class="brand-logo">Travel blog</a>
+                <a href="#" data-target="slide-out" class="sidenav-trigger left"><i class="material-icons">menu</i></a>
+             
+                
+              <ul class="right" style="padding-right: 50%">
+                  
+                <li>
+
+                <form>
+                <div class="input-field">
+                  <input id="search" type="search" required>
+                  <label class="label-icon" for="search"><i class="material-icons">search</i></label>
+                  <i class="material-icons">close</i>
+                </div>
+                </form>
+                </li>
+            </ul>
+        </div>
+    </nav>
+        
+        
+        <ul id="slide-out" class="sidenav">
+    <li><div class="user-view">
+      <div class="background">
+        <img src="images/office.jpg">
+      </div>
+      <a href="#user"><img class="circle" src="images/yuna.jpg"></a>
+      <a href="#name"><span class="white-text name">John Doe</span></a>
+      <a href="#email"><span class="white-text email">jdandturk@gmail.com</span></a>
+    </div></li>
+    <li><a href="#!"><i class="material-icons">cloud</i>First Link With Icon</a></li>
+    <li><a href="#!">Second Link</a></li>
+    <li><div class="divider"></div></li>
+    <li><a class="subheader">Subheader</a></li>
+    <li><a class="waves-effect" href="#!">Third Link With Waves</a></li>
+  </ul>
+  <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+        
+            <h1 id="uid"></h1>
+            <h1>Foster-Pet</h1>
+            <p>Foster care for dogs and cats!</p>
+            <div style="margin: 20px; border-width: 2px" id="stuff"></div>
+            <div id="imgTest"><br></div>
+            <input type="text" id="current_text">
+            
+        <input id="inputFileToLoad" type="file" onchange="encodeImageFileAsURL();"/><br>
+        
+            <button onclick="pushStorage()">Store it!</button>    
+        <button onclick="signin()"><img src="signin.png"></button>
+            <button onclick="getData()">Get data</button>
+            <button class="waves-effect pink white-text" onclick="pushData()">Push data</button>
+            <button onclick="removeData()">Remove data</button>
+            <div id="info"></div>
+    </body>
+    
+    <!-- HERE IS THE JAVASCRIPT TO CONNECT TO YOUR FIREBASE -->
+    <script>
+        
+        document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.sidenav');
+    var instances = M.Sidenav.init(elems);
+  });
+        
+        // Your web app's Firebase configuration
+        var config = {
+            apiKey: "AIzaSyAgxg8C3PTR-XOzOZdpyMGQVq9IBugOA3g",
+            authDomain: "basic-d3556.firebaseapp.com",
+            databaseURL: "https://basic-d3556.firebaseio.com",
+            projectId: "basic-d3556",
+            storageBucket: "basic-d3556.appspot.com",
+            messagingSenderId: "1010614760359",
+            appId: "1:1010614760359:web:818dfcc2f8be51401c7c82",
+            measurementId: "G-62WRTET4D4"
+          };
+        firebase.initializeApp(config);
+               
+        // Check to see if you are logged in
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user == null) {
+                document.getElementById("uid").innerHTML = "not logged in";
+                return;
+            } else {
+                userId = user.uid; // you can also get .displayName, .photoURL, .email
+                document.getElementById("uid").innerHTML = userId; // display Google uid on page
+                
+                getData();
+                
+            } // end user null check
+        }); // end check auth state
+        
+        function encodeImageFileAsURL() {
+            var filesSelected = document.getElementById("inputFileToLoad").files;
+            if (filesSelected.length > 0) {
+                var fileToLoad = filesSelected[0];
+                var fileReader = new FileReader();
+                fileReader.onload = function(fileLoadedEvent) {
+                    var srcData = fileLoadedEvent.target.result; document.getElementById("imgTest").innerHTML = "<img src='" + srcData + "' class='circle' width='100'/><br>";
+                    //console.log(srcData);
+                }
+                fileReader.readAsDataURL(fileToLoad);
+            }
+        } // end function
+        
+       // HERE IS THE FUNCTION TO SHOW HOW TO GET USER DATA
+        function getData() {
+           var userId = document.getElementById("uid").innerHTML;
+            
+           var stuffdiv = document.getElementById("stuff");
+            
+           firebase.database().ref('/tweets/' + userId).once('value', function(snapshot) {
+               //console.log(snapshot.val());
+               
+               if (snapshot.val() == null) {
+                   return;
+                   stuffdiv.innerHTML = "";
+               }
+               keys = Object.keys(snapshot.val());
+               values = Object.values(snapshot.val());
+               console.log(values);
+               
+               mytable = "<table>"
+               for (i = 0; i<keys.length; i++) {
+                   mytable = mytable + "<tr>";
+                   mytable = mytable + "<td>" + values[i]['curimg'] + "</td>";
+                   mytable = mytable + "<td>" + values[i]['tweet'] + "</td>";
+                   if (values[i]['myurl'] != "") {
+                       mytable = mytable + "<td><a href='" + values[i]['myurl'] + "'>File</a></td>";
+                   }
+                   mytable = mytable + "<td>" + values[i]['time'] + "</td>";
+                   mytable = mytable + "</tr>";
+               }
+               mytable = mytable + "</table>"
+               //console.log(mytable);
+               stuffdiv.innerHTML = mytable;
+               
+               document.getElementById("imgTest").innerHTML = "";
+               document.getElementById("current_text").value = "";
+               
+               
+           });
+
+       }
+    
+        function pushData2(mylink) {
+        
+            
+            //var userId = document.getElementById("uid").innerHTML;
+            var curimg = document.getElementById("imgTest").innerHTML;
+            //console.log(curimg);
+            var curtext = document.getElementById("current_text").value;
+            //console.log(curtext);
+            var js_time = Date.now();
+            
+            firebase.database().ref('tweets/' + userId + "/").push({tweet: curtext, time: js_time, curimg: curimg, myurl: mylink}).catch(function(error) {
+                alert("Data could not be saved." + error);
+            });
+            
+            getData();
+        } 
+        
+        
+        // HERE IS THE FUNCTION TO SHOW HOW TO PUSH/ADD NEW USER DATA TO EXISTING DATABASE
+        function pushData() {
+        
+            
+            //var userId = document.getElementById("uid").innerHTML;
+            var curimg = document.getElementById("imgTest").innerHTML;
+            //console.log(curimg);
+            var curtext = document.getElementById("current_text").value;
+            //console.log(curtext);
+            var js_time = Date.now();
+            
+            firebase.database().ref('tweets/' + userId + "/").push({tweet: curtext, time: js_time, curimg: curimg}).catch(function(error) {
+                alert("Data could not be saved." + error);
+            });
+            
+            getData();
+        }
+        
+        function pushStorage() {
+            var myfile = document.getElementById("inputFileToLoad").files[0];
+            var sref = firebase.storage().ref(myfile.name);
+            
+                var task = sref.put(myfile).then(function(snapshot) {   snapshot.ref.getDownloadURL().then(function(downloadURL) {
+            console.log("File available at", downloadURL);
+                    pushData2(downloadURL);
+                    
+          });
+            });
+            //console.log(task);
+        }
+
+        // HERE IS THE FUNCTION TO SHOW HOW TO REMOVE USER DATA FROM EXISTING DATABASE - BE CAREFUL!
+        function removeData() {
+            var tweetid = firebase.database().ref('tweets/' + userId + "/").remove().catch(function(error) {
+            alert("Data could not be removed." + error);
+        });
+            
+            
+            document.getElementById("stuff").innerHTML = "";   
+            document.getElementById("imgTest").innerHTML = "";
+            document.getElementById("current_text").value = "";
+            
+            getData();
+        }
+        
+        function signin() {
+            var provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithRedirect(provider).then(function(result) { 
+                window.location.replace("fbtest.html");
+            });
+        }
+    </script>
+</html>

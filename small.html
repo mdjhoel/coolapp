@@ -1,0 +1,52 @@
+<html>
+    
+    <head>
+        <!-- HERE ARE YOUR FIREBASE and GOOGLE AUTHENICATION IMPORTS -->
+        <script src="https://www.gstatic.com/firebasejs/5.7.3/firebase.js"></script>
+        <script src="https://apis.google.com/js/platform.js" async defer></script>
+            
+    </head>
+    
+    
+    
+    <input id="inputFileToLoad" type="file" onchange="pushStorage()"/>
+    
+    <script>
+        
+        // Your web app's Firebase configuration
+        var config = {
+            apiKey: "AIzaSyAgxg8C3PTR-XOzOZdpyMGQVq9IBugOA3g",
+            authDomain: "basic-d3556.firebaseapp.com",
+            databaseURL: "https://basic-d3556.firebaseio.com",
+            projectId: "basic-d3556",
+            storageBucket: "basic-d3556.appspot.com",
+            messagingSenderId: "1010614760359",
+            appId: "1:1010614760359:web:818dfcc2f8be51401c7c82",
+            measurementId: "G-62WRTET4D4"
+          };
+        firebase.initializeApp(config);
+               
+        // Check to see if you are logged in
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user == null) {
+                document.getElementById("uid").innerHTML = "not logged in";
+                return;
+            } else {
+                userId = user.uid; // you can also get
+                
+            } // end user null check
+        }); // end check auth state
+        
+        
+        function pushStorage() {
+            var myfile = document.getElementById("inputFileToLoad").files[0];
+            var sref = firebase.storage().ref(myfile.name);
+            
+            var task = sref.put(myfile);
+            console.log(task);
+        }
+    
+    </script>
+    
+
+</html>
